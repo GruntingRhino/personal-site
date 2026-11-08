@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Abhay Sivaram</title>
+  <meta name="description" content="Abhay Sivaram. Machine learning and the mathematics behind it. Independent research on long-context retrieval and algorithmic fairness.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Abhay Sivaram">
+  <meta property="og:description" content="Machine learning and the mathematics behind it. Independent research on long-context retrieval and algorithmic fairness.">
+  <meta name="twitter:card" content="summary">
+  <meta name="color-scheme" content="light">
+  <script>document.documentElement.classList.add("js");</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <canvas id="field" aria-hidden="true"></canvas>
+
+  <header class="bar" id="bar">
+    <!-- empty left slot: keeps the name centred in the 3-column header. Set `kicker` in content.js to put text here. -->
+    <p class="bar-left mono" id="kicker" aria-hidden="true"></p>
+    <h1 class="wordmark"><a href="#top"><span class="mask"><span id="name">Your Name</span></span></a></h1>
+    <button class="menu-btn mono" id="menu-btn" type="button" aria-expanded="false" aria-controls="menu">
+      [ <span id="menu-label">Menu</span> ]
+    </button>
+  </header>
+
+  <nav class="menu" id="menu" aria-label="Sections">
+    <ol id="menu-list"></ol>
+  </nav>
+
+  <section class="hero" id="top" aria-label="Introduction">
+    <p class="fig mono rise" style="--i:3" id="fig" aria-hidden="true"></p>
+    <p class="tagline rise" style="--i:2" id="tagline"></p>
+    <p class="meter mono rise" style="--i:4" aria-hidden="true">
+      <span id="meter"></span><br>[ scroll &darr; ]
+    </p>
+  </section>
+
+  <div class="wrap intro">
+    <p class="bio" id="bio"></p>
+    <ul class="links mono" id="links" aria-label="Contact links"></ul>
+  </div>
+
+  <div class="wrap">
+    <dl class="highlights" id="highlights"></dl>
+  </div>
+
+  <main id="main" class="wrap"></main>
+
+  <footer class="wrap foot mono">
+    <span>&copy; <span id="year"></span> <span id="foot-name"></span></span>
+    <a href="#top">[ Top &uarr; ]</a>
+  </footer>
+
+  <noscript><p class="wrap">This page needs JavaScript to display its content.</p></noscript>
+  <script src="content.js"></script>
+  <script src="flow.js"></script>
+  <script src="app.js" defer></script>
+  <script src="molecules.js" defer></script>
+</body>
+</html>
