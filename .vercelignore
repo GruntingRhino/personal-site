@@ -1,0 +1,5 @@
+# internal files that should not be published
+spec.md
+.impeccable
+.env*
+.vercel
