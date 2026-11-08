@@ -276,7 +276,8 @@ Also: reload while scrolled down (opening must still play from the top); click-s
 ## 11b. Deploying (Vercel)
 
 - Live at **https://abhaysivaram.vercel.app** (Vercel project `abhaysivaram`, team `gruntingrhinos-projects`, linked through `.vercel/`, which is git-ignored and never uploaded). It is a plain static site: no build step, output directory is the folder itself.
-- **Redeploy:** from this folder run `vercel deploy --prod --yes`. Preview deploys without `--prod` get their own URL and leave the live site alone.
+- **Git-connected.** The project is connected to the private GitHub repo `GruntingRhino/personal-site`. Every push to `main` deploys to production automatically (about 10 to 20 seconds); a push to any other branch gets its own preview URL, which is behind Vercel login, and leaves the live site alone. Normal workflow: edit, `git add -A && git commit -m "..." && git push`.
+- **Manual deploy** (only if Git is unavailable): from this folder run `vercel deploy --prod --yes`. Only files in git are in the repo, so `.impeccable`, `.vercel` and `.env*` stay out of it (see `.gitignore`).
 - **Rollback:** `vercel rollback` (or "Promote" an earlier deployment in the Vercel dashboard) restores the previous deployment in seconds. Nothing else needs undoing, because there is no database or server state.
 - `.vercelignore` keeps `spec.md`, `.impeccable`, `.env*` and `.vercel` out of the upload, so `/spec.md` is a 404 on the live site. Do not remove `.env*` from it: `vercel link` writes a `.env.local` with a token; delete that file after linking.
 - `vercel.json` only adds three response headers (`nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY`). A Content-Security-Policy is not set: `index.html` has one inline script and loads Google Fonts, so a CSP needs a hash for the script and the two font hosts.
