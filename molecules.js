@@ -837,7 +837,7 @@
     build(); request();
   };
   if (document.fonts && document.fonts.load) {
-    Promise.all([document.fonts.load('400 30px "Geist"'), document.fonts.load('500 11px "IBM Plex Mono"'), document.fonts.ready]).then(fontsReady, fontsReady);
+    Promise.all([document.fonts.load('400 30px "Instrument Sans"'), document.fonts.load('500 11px "IBM Plex Mono"'), document.fonts.ready]).then(fontsReady, fontsReady);
   } else fontsOk = true;
   addEventListener("load", () => { refresh(true); setTimeout(() => refresh(true), 1800); });
 

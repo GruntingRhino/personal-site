@@ -12,7 +12,7 @@ cd /Users/abhay/personal-site && python3 -m http.server 8765      # then open ht
 
 ## 1. What the page does
 
-- A formal, academic, editorial page: paper background `#FAFAF8`, ink `#171717`, Instrument Serif + Geist + IBM Plex Mono, grayscale only. The name in the header is bold (Instrument Serif has no bold weight, so that is the browser's synthesized bold) and set in the normal ink colour. An accent colour was tried and removed, so keep the page grayscale.
+- A formal, academic, editorial page: paper background `#FAFAF8`, ink `#171717`, Instrument Serif + Instrument Sans + IBM Plex Mono, grayscale only. The name in the header is bold (Instrument Serif has no bold weight, so that is the browser's synthesized bold) and set in the normal ink colour. An accent colour was tried and removed, so keep the page grayscale.
 - Four small "molecules" (16 dots joined by bonds) live on a fixed `<canvas id="field">` behind the content. One per interest: 0 Machine Learning, 1 Software Engineering, 2 Quantitative Finance, 3 Mathematics.
 - On load (wide screens) an **opening** plays: a next-token-prediction line types out the four interests, the interests drop down to become titles, and the molecules fly in from the sides as strings and clump up (section 5).
 - While you scroll, each molecule follows its own hand-traced **route** down the page. It is stretched into a string while travelling and coils into a clump when it reaches an item it belongs to (and at the top and bottom of the page). Each clump has its **title directly under it**.
@@ -98,7 +98,7 @@ States (`iState`): `0` waiting for fonts (≤ 1.5 s), `1` playing, `2` skipped (
 - Scroll is held at the top for those ~5 s. Wheel/touch/key scrolling is `preventDefault`ed. **Skip** = click, Esc, Enter, Space, ↓, PageDown, End, or a deliberate scroll/swipe (≥ ~520 px of wheel delta). Light trackpad brushes do not skip. The listeners are removed on skip/finish (`unlock()`); do not leave non-passive wheel listeners on the page.
 - The text is drawn on the canvas in **viewport** coordinates (the page is pinned at `scrollY = 0`, so viewport = document). It starts at the left edge of `.tagline` and sits between the header and the tagline.
 - To change wording: edit `intro.sentence`. `{ t: "…" }` is a fixed word; `{ k: n }` is an interest (its text comes from `clusters[n]`); `c: [[candidate, probability], …]` is the flavour list (first entry is the winner; `""` means "use the real word"). Entry sides/heights: `intro.enter[k]`.
-- The opening waits for fonts (`document.fonts.load('400 30px "Geist"')`, `'500 11px "IBM Plex Mono"'`). **If you change fonts, change those two strings** or the typed line will be measured with the wrong letterforms.
+- The opening waits for fonts (`document.fonts.load('400 30px "Instrument Sans"')`, `'500 11px "IBM Plex Mono"'`). **If you change fonts, change those two strings** or the typed line will be measured with the wrong letterforms.
 
 ---
 
