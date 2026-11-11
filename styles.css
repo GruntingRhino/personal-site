@@ -12,7 +12,7 @@
   --bar-h: 3.5rem;
   /* Type */
   --serif: "Instrument Serif", ui-serif, Georgia, serif;
-  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --t-xs: 0.6875rem; --t-sm: 0.875rem; --t-md: 1rem;
   --t-lg: clamp(1.5rem, 2.5vw, 2rem);
