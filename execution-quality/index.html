@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Broker Execution Tracker</title>
+  <meta name="description" content="Composition-adjusted execution quality of US retail brokers from the amended SEC Rule 605 reports: brokers compared on identical orders.">
+  <meta name="color-scheme" content="light">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap">
+  <style>
+    :root {
+      --bg: #fafaf8; --text: #171717; --muted: #6e6e6e; --rule: #e7e7e3; --line: #cecec8; --faint: #b5b5ae;
+      --serif: "Instrument Serif", ui-serif, Georgia, serif;
+      --sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      --gutter: clamp(1rem, 4vw, 2.5rem);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 400 1rem/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration-color: var(--line); text-underline-offset: 0.25em; }
+    a:hover { text-decoration-color: currentColor; }
+    :focus-visible { outline: 1px solid var(--text); outline-offset: 3px; }
+    .wrap { max-width: 64rem; margin: 0 auto; padding: 0 var(--gutter); }
+    .mono { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    header { padding: 1.25rem 0; border-bottom: 1px solid var(--rule); }
+    header .wrap { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+    header a { text-decoration: none; }
+    .home { font: 700 1.35rem/1 var(--serif); letter-spacing: 0.02em; }
+    h1 { font: 400 clamp(2rem, 4.5vw, 3.25rem)/1.08 var(--serif); margin: 3rem 0 1rem; max-width: 22ch; text-wrap: balance; }
+    .lede { max-width: 62ch; color: var(--text); margin: 0 0 2.5rem; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1.5rem; padding: 1.5rem 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .stat .v { font: 400 clamp(1.6rem, 3vw, 2.25rem)/1.1 var(--serif); }
+    .stat .l { color: var(--muted); font-size: 0.875rem; }
+    .controls { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; align-items: center; margin: 2.5rem 0 1rem; }
+    .seg { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+    .seg button, .sort button { font: 500 0.8125rem/1 var(--sans); background: none; border: 1px solid var(--line); color: var(--text); padding: 0.45rem 0.7rem; border-radius: 999px; cursor: pointer; }
+    .seg button[aria-pressed="true"], .sort button[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .sort { display: flex; gap: 0.25rem; align-items: center; }
+    .sort .mono { color: var(--muted); margin-right: 0.25rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th { text-align: left; font-weight: 500; color: var(--muted); padding: 0.5rem 0.5rem 0.5rem 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    td { padding: 0.35rem 0.5rem 0.35rem 0; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 0.8125rem; }
+    td.firm { max-width: 18rem; }
+    .firm small { display: block; color: var(--muted); font-size: 0.75rem; }
+    td.bar { width: 34%; min-width: 9rem; }
+    svg.ci { display: block; width: 100%; height: 16px; overflow: visible; }
+    tr.untested td { color: var(--muted); }
+    .axis { display: flex; justify-content: space-between; color: var(--muted); font-family: var(--mono); font-size: 0.6875rem; }
+    .legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; color: var(--muted); font-size: 0.8125rem; margin: 0.75rem 0 0; }
+    .legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+    .scroll { overflow-x: auto; }
+    section.prose { max-width: 62ch; margin: 3.5rem 0; }
+    section.prose h2 { font: 400 1.6rem/1.2 var(--serif); margin: 0 0 0.75rem; }
+    footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding: 1.5rem 0 3rem; color: var(--muted); font-size: 0.8125rem; }
+    @media (max-width: 40rem) { td.hide-sm, th.hide-sm { display: none; } td.bar { min-width: 7rem; } }
+  </style>
+</head>
+<body>
+  <header><div class="wrap"><a class="home" href="../">Abhay Sivaram</a><span class="mono" id="period">Rule 605 tracker</span></div></header>
+  <main class="wrap">
+    <h1>Same orders, different brokers</h1>
+    <p class="lede">Since August 2026, US brokers publish monthly execution statistics under amended SEC Rule 605. Raw numbers mix how well a broker executes with what its customers trade. This tracker compares brokers on identical orders (same stock, lot type, order size and order type, same month) and reports how much better or worse each broker's customers did than other brokers' customers on exactly those orders.</p>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="controls">
+      <div class="seg" id="seg" role="group" aria-label="Broker type"></div>
+      <div class="sort" role="group" aria-label="Sort"><span class="mono">Sort</span>
+        <button type="button" data-sort="delta" aria-pressed="true">Adjusted</button>
+        <button type="button" data-sort="raw_rank" aria-pressed="false">Raw</button>
+        <button type="button" data-sort="firm" aria-pressed="false">Name</button>
+      </div>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead><tr>
+          <th class="num">Rank</th><th>Broker</th>
+          <th class="bar"><div class="axis" id="axis"></div></th>
+          <th class="num">Gap</th><th class="num hide-sm">Raw rank</th><th class="num hide-sm">$ per $10k</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="#171717"/></svg> differs from other brokers (Holm p &lt; 0.05)</span>
+      <span><svg width="10" height="10"><circle cx="5" cy="5" r="3.5" fill="#fafaf8" stroke="#171717" stroke-width="1.2"/></svg> not significant</span>
+      <span><svg width="10" height="10"><circle cx="5" cy="5" r="3.5" fill="#fafaf8" stroke="#b5b5ae" stroke-width="1.2"/></svg> too few effective stocks to test</span>
+    </div>
+
+    <section class="prose">
+      <h2>How to read it</h2>
+      <p><strong>Gap</strong> is the adjusted difference in E/Q, the effective spread divided by the quoted spread (lower is better for the customer). A gap of −0.20 means the broker's customers paid an effective spread 20 percentage points of the quoted spread smaller than other brokers achieved on the same orders. Bars show 95% confidence intervals from a stock-level bootstrap. <strong>Rank</strong> intervals show how uncertain each position is. <strong>Raw rank</strong> is where the broker would sit on its unadjusted average, which mixes in what its customers trade. <strong>$ per $10k</strong> converts the adjusted percentage effective spread into dollars per $10,000 traded.</p>
+      <p>The method, its proofs and its limitations are in the paper. The analysis was pre-registered before any broker was compared. Within-cell differences in order timing or customer information are not removed; the paper shows they are unlikely to explain most gaps. Reports are self-reported by brokers, and some brokers' reports could not be collected.</p>
+    </section>
+  </main>
+  <footer><div class="wrap">Data: SEC Rule 605 reports published by each broker (<span id="cells"></span>). Code, pre-registration and paper: <a href="https://github.com/GruntingRhino/retail-execution-quality">github.com/GruntingRhino/retail-execution-quality</a>. Not investment advice.</div></footer>
+
+  <script>
+    const SEGMENTS = [["all", "All"], ["self-directed", "Self-directed"], ["robo/micro", "Robo / micro"], ["full-service/wealth", "Full-service"], ["advisor-custodian", "Advisor custodian"]];
+    const state = { seg: "all", sort: "delta" };
+    let D = null;
+    const fmt = (x, d = 2) => (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(d);
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+    function render() {
+      const rows = D.brokers.filter(b => state.seg === "all" || b.segment === state.seg);
+      rows.sort((a, b) => state.sort === "firm" ? a.firm.localeCompare(b.firm) : a[state.sort] - b[state.sort]);
+      const lo = Math.min(...D.brokers.map(b => b.lo)), hi = Math.max(...D.brokers.map(b => b.hi));
+      const pad = (hi - lo) * 0.04, x0 = lo - pad, x1 = hi + pad, X = v => (100 * (v - x0) / (x1 - x0)).toFixed(2) + "%";
+      document.getElementById("axis").innerHTML = `<span>${fmt(Math.ceil(x0 * 10) / 10, 1)}</span><span>0 · better ← → worse</span><span>${fmt(Math.floor(x1 * 10) / 10, 1)}</span>`;
+      document.getElementById("rows").innerHTML = rows.map(b => {
+        const stroke = b.tested ? "#171717" : "#b5b5ae", fill = b.significant ? "#171717" : "#fafaf8";
+        const tip = `${b.firm}: gap ${fmt(b.delta)} (95% CI ${fmt(b.lo)} to ${fmt(b.hi)}); rank ${b.rank} (${b.rank_lo}–${b.rank_hi})` + (b.tested ? (b.significant ? "; differs significantly" : "; not significant") : "; not tested");
+        return `<tr class="${b.tested ? "" : "untested"}" title="${esc(tip)}">
+          <td class="num">${b.rank}<br><small style="color:var(--muted)">${b.rank_lo}–${b.rank_hi}</small></td>
+          <td class="firm">${esc(b.firm)}<small>${esc(b.segment)}</small></td>
+          <td class="bar"><svg class="ci" role="img" aria-label="${esc(tip)}">
+            <line x1="${X(0)}" x2="${X(0)}" y1="0" y2="16" stroke="#cecec8" stroke-width="1"/>
+            <line x1="${X(b.lo)}" x2="${X(b.hi)}" y1="8" y2="8" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="${X(b.delta)}" cy="8" r="4.5" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/></svg></td>
+          <td class="num">${fmt(b.delta)}</td>
+          <td class="num hide-sm">${b.raw_rank}</td>
+          <td class="num hide-sm">${b.usd_per_10k == null ? "–" : fmt(b.usd_per_10k)}</td></tr>`;
+      }).join("");
+    }
+
+    function controls() {
+      const seg = document.getElementById("seg");
+      seg.innerHTML = SEGMENTS.filter(([k]) => k === "all" || D.brokers.some(b => b.segment === k))
+        .map(([k, l]) => `<button type="button" data-seg="${k}" aria-pressed="${k === state.seg}">${l}</button>`).join("");
+      seg.addEventListener("click", e => { const k = e.target.dataset.seg; if (!k) return; state.seg = k;
+        seg.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.seg === k)); render(); });
+      document.querySelector(".sort").addEventListener("click", e => { const k = e.target.dataset.sort; if (!k) return; state.sort = k;
+        document.querySelectorAll(".sort button").forEach(b => b.setAttribute("aria-pressed", b.dataset.sort === k)); render(); });
+    }
+
+    fetch("data.json").then(r => r.json()).then(d => {
+      D = d;
+      document.getElementById("period").textContent = "Rule 605 · " + d.period;
+      document.getElementById("cells").textContent = `${d.period}, ${d.n_cells.toLocaleString()} matched cells in ${d.n_symbols.toLocaleString()} stocks`;
+      document.getElementById("stats").innerHTML = [
+        [`${d.n_sig} of ${d.n_tested}`, "tested brokers differ from competitors on the same orders"],
+        [`${d.raw_vs_adjusted_spearman}`, "rank correlation between raw and adjusted rankings"],
+        [`$${d.usd_month_worse}M`, "extra paid per month by customers of below-benchmark brokers"],
+        [`${d.n_brokers}`, "retail brokers compared"]].map(([v, l]) => `<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+      controls(); render();
+    }).catch(() => { document.getElementById("rows").innerHTML = '<tr><td colspan="6">Data could not be loaded.</td></tr>'; });
+  </script>
+</body>
+</html>
