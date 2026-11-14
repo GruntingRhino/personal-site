@@ -55,6 +55,14 @@
     section.prose { max-width: 62ch; margin: 3.5rem 0; }
     section.prose h2 { font: 400 1.6rem/1.2 var(--serif); margin: 0 0 0.75rem; }
     footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding: 1.5rem 0 3rem; color: var(--muted); font-size: 0.8125rem; }
+    .calc { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.75rem 1.25rem; margin: 1rem 0 1.25rem; }
+    .calc label { display: block; color: var(--muted); font-size: 0.8125rem; margin-bottom: 0.25rem; }
+    .calc select { width: 100%; font: 400 0.9375rem/1.2 var(--sans); padding: 0.5rem 0.6rem; border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 0.375rem; }
+    h2.sec { font: 400 1.75rem/1.2 var(--serif); margin: 3.5rem 0 0.5rem; }
+    p.note { color: var(--muted); font-size: 0.875rem; max-width: 62ch; margin: 0 0 0.5rem; }
+    ul.dl { padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 0.25rem 1.5rem; font-size: 0.9375rem; }
+    ul.dl small { color: var(--muted); }
+    td.firm a { text-decoration-color: var(--line); }
     @media (max-width: 40rem) { td.hide-sm, th.hide-sm { display: none; } td.bar { min-width: 7rem; } }
   </style>
 </head>
@@ -91,6 +99,32 @@
       <span><svg width="10" height="10"><circle cx="5" cy="5" r="3.5" fill="#fafaf8" stroke="#b5b5ae" stroke-width="1.2"/></svg> too few effective stocks to test</span>
     </div>
 
+    <h2 class="sec" id="calculator">Best broker for your trade</h2>
+    <p class="note">Pick the kind of order you place. The ranking below compares brokers only on orders of that kind (<span id="calc-period"></span>). Fewer brokers appear for rare combinations; grey rows rest on too few stocks to test.</p>
+    <div class="calc">
+      <div><label for="c-tier">Stock</label><select id="c-tier">
+        <option value="most liquid">Large, heavily traded stocks</option><option value="middle">Mid-liquidity stocks</option><option value="least liquid">Smaller, thinly traded stocks</option></select></div>
+      <div><label for="c-size">Order size</label><select id="c-size">
+        <option value="under $1k">Under $1,000</option><option value="$1k-10k">$1,000–$10,000</option><option value="$10k-50k">$10,000–$50,000</option><option value="$50k+">$50,000 or more</option></select></div>
+      <div><label for="c-type">Order type</label><select id="c-type">
+        <option value="market">Market order</option><option value="marketable limit">Marketable limit order</option></select></div>
+    </div>
+    <div class="scroll"><table>
+      <thead><tr><th class="num">#</th><th>Broker</th><th class="bar"><div class="axis" id="c-axis"></div></th><th class="num">Gap</th></tr></thead>
+      <tbody id="c-rows"></tbody></table></div>
+
+    <h2 class="sec" id="downloads">Download the data</h2>
+    <p class="note">CSV files for the latest month. Exploratory files (routing, limit orders) were added after the pre-registration and are labelled so in the paper.</p>
+    <ul class="dl">
+      <li><a href="data/csv/brokers_latest.csv" download>brokers_latest.csv</a> <small>main table, all statistics</small></li>
+      <li><a href="data/csv/calculator_slices.csv" download>calculator_slices.csv</a> <small>gaps by stock, size, order type</small></li>
+      <li><a href="data/csv/history.csv" download>history.csv</a> <small>monthly gaps and ranks</small></li>
+      <li><a href="data/csv/pairwise.csv" download>pairwise.csv</a> <small>every broker pair</small></li>
+      <li><a href="data/csv/decomposition_vs_rest.csv" download>decomposition_vs_rest.csv</a> <small>raw gap = support + composition + execution</small></li>
+      <li><a href="data/csv/routing.csv" download>routing.csv</a> <small>exploratory: venue choice vs price at the venue</small></li>
+      <li><a href="data/csv/limit_orders.csv" download>limit_orders.csv</a> <small>exploratory: limit-order fill rates</small></li>
+    </ul>
+
     <section class="prose">
       <h2>How to read it</h2>
       <p><strong>Gap</strong> is the adjusted difference in E/Q, the effective spread divided by the quoted spread (lower is better for the customer). A gap of −0.20 means the broker's customers paid an effective spread 20 percentage points of the quoted spread smaller than other brokers achieved on the same orders. Bars show 95% confidence intervals from a stock-level bootstrap. <strong>Rank</strong> intervals show how uncertain each position is. <strong>Raw rank</strong> is where the broker would sit on its unadjusted average, which mixes in what its customers trade. <strong>$ per $10k</strong> converts the adjusted percentage effective spread into dollars per $10,000 traded.</p>
@@ -117,7 +151,7 @@
         const tip = `${b.firm}: gap ${fmt(b.delta)} (95% CI ${fmt(b.lo)} to ${fmt(b.hi)}); rank ${b.rank} (${b.rank_lo}–${b.rank_hi})` + (b.tested ? (b.significant ? "; differs significantly" : "; not significant") : "; not tested");
         return `<tr class="${b.tested ? "" : "untested"}" title="${esc(tip)}">
           <td class="num">${b.rank}<br><small style="color:var(--muted)">${b.rank_lo}–${b.rank_hi}</small></td>
-          <td class="firm">${esc(b.firm)}<small>${esc(b.segment)}</small></td>
+          <td class="firm"><a href="broker.html?b=${encodeURIComponent(b.code)}">${esc(b.firm)}</a><small>${esc(b.segment)}</small></td>
           <td class="bar"><svg class="ci" role="img" aria-label="${esc(tip)}">
             <line x1="${X(0)}" x2="${X(0)}" y1="0" y2="16" stroke="#cecec8" stroke-width="1"/>
             <line x1="${X(b.lo)}" x2="${X(b.hi)}" y1="8" y2="8" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/>
@@ -138,7 +172,31 @@
         document.querySelectorAll(".sort button").forEach(b => b.setAttribute("aria-pressed", b.dataset.sort === k)); render(); });
     }
 
-    fetch("data.json").then(r => r.json()).then(d => {
+    let S = null;
+    function ciSvg(b, X) {
+      const stroke = b.tested ? "#171717" : "#b5b5ae", fill = b.significant ? "#171717" : "#fafaf8";
+      return `<svg class="ci" role="img" aria-label="gap ${fmt(b.delta)}, 95% CI ${fmt(b.lo)} to ${fmt(b.hi)}">
+        <line x1="${X(0)}" x2="${X(0)}" y1="0" y2="16" stroke="#cecec8" stroke-width="1"/>
+        <line x1="${X(b.lo)}" x2="${X(b.hi)}" y1="8" y2="8" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="${X(b.delta)}" cy="8" r="4.5" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/></svg>`;
+    }
+    function renderCalc() {
+      if (!S) return;
+      const key = ["c-tier", "c-size", "c-type"].map(id => document.getElementById(id).value).join("|");
+      const rows = S.slices[key] || [];
+      const body = document.getElementById("c-rows");
+      if (!rows.length) { body.innerHTML = '<tr><td colspan="4">Too few matched orders of this kind to compare brokers.</td></tr>'; document.getElementById("c-axis").innerHTML = ""; return; }
+      const lo = Math.min(...rows.map(b => b.lo)), hi = Math.max(...rows.map(b => b.hi)), pad = (hi - lo) * 0.04;
+      const x0 = Math.min(lo - pad, -0.05), x1 = Math.max(hi + pad, 0.05), X = v => (100 * (v - x0) / (x1 - x0)).toFixed(2) + "%";
+      document.getElementById("c-axis").innerHTML = `<span>${fmt(x0, 1)}</span><span>0 · better ← → worse</span><span>${fmt(x1, 1)}</span>`;
+      body.innerHTML = rows.map((b, i) => `<tr class="${b.tested ? "" : "untested"}">
+        <td class="num">${i + 1}</td><td class="firm"><a href="broker.html?b=${encodeURIComponent(b.code)}">${esc(b.firm)}</a><small>${b.n_cells.toLocaleString()} matched order groups</small></td>
+        <td class="bar">${ciSvg(b, X)}</td><td class="num">${fmt(b.delta)}</td></tr>`).join("");
+    }
+    ["c-tier", "c-size", "c-type"].forEach(id => document.getElementById(id).addEventListener("change", renderCalc));
+    fetch("data/slices.json").then(r => r.json()).then(s => { S = s; document.getElementById("calc-period").textContent = s.period; renderCalc(); }).catch(() => {});
+
+    fetch("data/data.json").then(r => r.json()).then(d => {
       D = d;
       document.getElementById("period").textContent = "Rule 605 · " + d.period;
       document.getElementById("cells").textContent = `${d.period}, ${d.n_cells.toLocaleString()} matched cells in ${d.n_symbols.toLocaleString()} stocks`;

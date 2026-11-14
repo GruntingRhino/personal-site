@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Broker Execution Detail</title>
+  <meta name="description" content="One broker's composition-adjusted execution quality from amended SEC Rule 605 reports: trend, decomposition, cost and comparisons.">
+  <meta name="color-scheme" content="light">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap">
+  <style>
+    :root {
+      --bg: #fafaf8; --text: #171717; --muted: #6e6e6e; --rule: #e7e7e3; --line: #cecec8; --faint: #b5b5ae;
+      --serif: "Instrument Serif", ui-serif, Georgia, serif;
+      --sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      --gutter: clamp(1rem, 4vw, 2.5rem);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 400 1rem/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration-color: var(--line); text-underline-offset: 0.25em; }
+    a:hover { text-decoration-color: currentColor; }
+    :focus-visible { outline: 1px solid var(--text); outline-offset: 3px; }
+    .wrap { max-width: 64rem; margin: 0 auto; padding: 0 var(--gutter); }
+    .mono { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    header { padding: 1.25rem 0; border-bottom: 1px solid var(--rule); }
+    header .wrap { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+    header a { text-decoration: none; }
+    .home { font: 700 1.35rem/1 var(--serif); letter-spacing: 0.02em; }
+    .back { display: inline-block; margin-top: 2rem; color: var(--muted); font-size: 0.875rem; }
+    h1 { font: 400 clamp(2rem, 4.5vw, 3.25rem)/1.08 var(--serif); margin: 1rem 0 0.25rem; text-wrap: balance; }
+    .sub { color: var(--muted); margin: 0 0 2rem; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1.5rem; padding: 1.5rem 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .stat .v { font: 400 clamp(1.6rem, 3vw, 2.25rem)/1.1 var(--serif); }
+    .stat .l { color: var(--muted); font-size: 0.875rem; }
+    h2 { font: 400 1.75rem/1.2 var(--serif); margin: 3rem 0 0.5rem; }
+    h2 .tag { font: 400 0.6875rem/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0.25rem 0.5rem; vertical-align: middle; margin-left: 0.5rem; }
+    p.note { color: var(--muted); font-size: 0.875rem; max-width: 62ch; margin: 0 0 0.75rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th { text-align: left; font-weight: 500; color: var(--muted); padding: 0.5rem 0.5rem 0.5rem 0; border-bottom: 1px solid var(--line); }
+    td { padding: 0.45rem 0.5rem 0.45rem 0; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 0.8125rem; white-space: nowrap; }
+    td small { display: block; color: var(--muted); font-size: 0.75rem; }
+    td.bar { width: 40%; min-width: 8rem; }
+    svg.hb { display: block; width: 100%; height: 14px; overflow: visible; }
+    .scroll { overflow-x: auto; }
+    .chart { position: relative; }
+    .chart svg { display: block; width: 100%; height: auto; max-height: 260px; overflow: visible; }
+    .tip { position: absolute; pointer-events: none; background: var(--text); color: var(--bg); font-size: 0.75rem; padding: 0.35rem 0.5rem; border-radius: 0.25rem; white-space: nowrap; transform: translate(-50%, -110%); display: none; }
+    .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 0 2.5rem; }
+    ul.pairs { list-style: none; padding: 0; margin: 0; font-size: 0.9375rem; }
+    ul.pairs li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.4rem 0; border-bottom: 1px solid var(--rule); }
+    ul.pairs .num { font-family: var(--mono); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
+    footer { border-top: 1px solid var(--rule); margin-top: 3rem; padding: 1.5rem 0 3rem; color: var(--muted); font-size: 0.8125rem; }
+  </style>
+</head>
+<body>
+  <header><div class="wrap"><a class="home" href="../">Abhay Sivaram</a><span class="mono" id="period">Rule 605 tracker</span></div></header>
+  <main class="wrap" id="main">
+    <a class="back" href="./">← All brokers</a>
+    <h1 id="firm">Loading…</h1>
+    <p class="sub" id="sub"></p>
+    <div class="stats" id="stats"></div>
+    <div id="body"></div>
+  </main>
+  <footer><div class="wrap">Gap: adjusted difference in E/Q (effective spread ÷ quoted spread) against other brokers on the same stock, lot type, order size, order type and month; lower is better. Intervals are 95% stock-level bootstrap intervals. Code and paper: <a href="https://github.com/GruntingRhino/retail-execution-quality">github.com/GruntingRhino/retail-execution-quality</a>. Not investment advice.</div></footer>
+
+  <script>
+    const fmt = (x, d = 2) => x == null ? "–" : (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(d);
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ");
+    const mlabel = m => `${MONTHS[m % 100 - 1]} ${Math.floor(m / 100)}`;
+    const code = new URLSearchParams(location.search).get("b");
+
+    // signed horizontal bar from 0, on a shared scale [-m, m]
+    function hbar(v, m, lo, hi) {
+      const X = x => (50 + 50 * Math.max(-1, Math.min(1, x / m))).toFixed(2) + "%";
+      const ci = lo == null ? "" : `<line x1="${X(lo)}" x2="${X(hi)}" y1="7" y2="7" stroke="#171717" stroke-width="1.5"/>`;
+      const a = Math.min(50, parseFloat(X(v))), w = Math.abs(parseFloat(X(v)) - 50);
+      return `<svg class="hb" aria-hidden="true"><line x1="50%" x2="50%" y1="0" y2="14" stroke="#cecec8"/>
+        <rect x="${a}%" y="3" width="${w}%" height="8" rx="2" fill="#6e6e6e"/>${ci}</svg>`;
+    }
+
+    function history(h, pooled) {
+      if (!h.length) return "";
+      const W = Math.round(Math.min(640, Math.max(300, document.getElementById("firm").clientWidth))), H = 220, L = 44, R = 16, T = 12, B = 28;
+      const vals = h.flatMap(r => [r.lo, r.hi]).concat(pooled ? [pooled.lo, pooled.hi] : []).concat([0]);
+      let y0 = Math.min(...vals), y1 = Math.max(...vals); const pad = (y1 - y0) * 0.1 || 0.05; y0 -= pad; y1 += pad;
+      const Y = v => T + (H - T - B) * (y1 - v) / (y1 - y0);
+      const X = i => h.length === 1 ? (L + W - R) / 2 : L + (W - L - R) * (0.08 + 0.84 * i / (h.length - 1));
+      const ticks = [y0 + pad, (y0 + y1) / 2, y1 - pad];
+      let s = `<line x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}" stroke="#cecec8"/>`;
+      s += ticks.map(t => `<text x="${L - 6}" y="${Y(t) + 4}" text-anchor="end" font-size="11" font-family="IBM Plex Mono" fill="#6e6e6e">${fmt(t)}</text>`).join("");
+      if (pooled) s += `<line x1="${L}" x2="${W - R}" y1="${Y(pooled.delta)}" y2="${Y(pooled.delta)}" stroke="#6e6e6e" stroke-dasharray="3 4"/>
+        <text x="${(L + W - R) / 2}" y="${Y(pooled.delta) - 6}" text-anchor="middle" font-size="11" fill="#6e6e6e">Aug–Sep pooled (paper)</text>`;
+      if (h.length > 1) s += `<polyline fill="none" stroke="#171717" stroke-width="2" points="${h.map((r, i) => `${X(i)},${Y(r.delta)}`).join(" ")}"/>`;
+      s += h.map((r, i) => `<g data-i="${i}"><line x1="${X(i)}" x2="${X(i)}" y1="${Y(r.lo)}" y2="${Y(r.hi)}" stroke="${r.tested ? "#171717" : "#b5b5ae"}" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="${X(i)}" cy="${Y(r.delta)}" r="5" fill="#171717" stroke="#fafaf8" stroke-width="2"/>
+        <rect x="${X(i) - 24}" y="${T}" width="48" height="${H - T - B}" fill="transparent"/>
+        <text x="${X(i)}" y="${H - 8}" text-anchor="middle" font-size="11" font-family="IBM Plex Mono" fill="#6e6e6e">${mlabel(r.month)}</text></g>`).join("");
+      return `<h2>Trend</h2><p class="note">Monthly adjusted gap with 95% interval. Below the line is better than other brokers on the same orders.</p>
+        <div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Monthly adjusted gap">${s}</svg><div class="tip" id="tip"></div></div>
+        <div class="scroll"><table><thead><tr><th>Month</th><th class="num">Gap</th><th class="num">95% interval</th><th class="num">Rank</th></tr></thead><tbody>
+        ${h.map(r => `<tr><td>${mlabel(r.month)}</td><td class="num">${fmt(r.delta)}</td><td class="num">${fmt(r.lo)} to ${fmt(r.hi)}</td><td class="num">${r.rank}</td></tr>`).join("")}</tbody></table></div>`;
+    }
+
+    function decomposition(d) {
+      if (!d) return "";
+      const parts = [["raw", "Raw gap", "unadjusted average vs all other brokers"], ["support", "Support", "orders other brokers never report"],
+        ["composition", "Composition", "what its customers trade"], ["execution", "Execution", "same orders, different price"]];
+      const m = Math.max(...parts.map(([k]) => Math.abs(d[k]))) * 1.05 || 1;
+      return `<h2>Why the raw number misleads</h2><p class="note">The raw gap splits exactly into three parts. Only the execution part compares like with like.</p>
+        <table><tbody>${parts.map(([k, l, s]) => `<tr><td>${l}<small>${s}</small></td><td class="bar">${hbar(d[k], m)}</td><td class="num">${fmt(d[k])}</td></tr>`).join("")}</tbody></table>`;
+    }
+
+    function secondary(s) {
+      const rows = [["eff_pct", "Effective spread", "bp of price, lower is better", v => fmt(v * 1e4, 1) + " bp"],
+        ["pi_share", "Shares price-improved", "higher is better", v => fmt(v * 100, 1) + " pp"],
+        ["at_or_better", "Shares at or better than the quote", "higher is better", v => fmt(v * 100, 1) + " pp"],
+        ["exec_time", "Time to execution", "lower is better", v => fmt(v, 0) + " ms"]].filter(([k]) => s && s[k] != null);
+      if (!rows.length) return "";
+      return `<h2>Other measures</h2><p class="note">Each compared with other brokers on the same orders.</p>
+        <table><tbody>${rows.map(([k, l, n, f]) => `<tr><td>${l}<small>${n}</small></td><td class="num">${f(s[k])}</td></tr>`).join("")}</tbody></table>`;
+    }
+
+    function exploratory(b) {
+      let s = "";
+      if (b.routing) {
+        const r = b.routing, m = Math.max(Math.abs(r.routing), Math.abs(r.within_lo), Math.abs(r.within_hi)) * 1.05 || 1;
+        s += `<h2>Where it routes vs what it gets <span class="tag">exploratory</span></h2>
+          <p class="note">Routing: how good its wholesalers are on these orders, at their average client's price. Price at the wholesaler: how this broker's customers did against the wholesalers' average client. Covers ${Math.round(r.coverage * 100)}% of its routed orders (wholesalers that publish Rule 605 data).</p>
+          <table><tbody><tr><td>Routing choice</td><td class="bar">${hbar(r.routing, m)}</td><td class="num">${fmt(r.routing)}</td></tr>
+          <tr><td>Price at the wholesaler<small>95% interval ${fmt(r.within_lo)} to ${fmt(r.within_hi)}</small></td><td class="bar">${hbar(r.within, m, r.within_lo, r.within_hi)}</td><td class="num">${fmt(r.within)}</td></tr></tbody></table>`;
+      }
+      if (b.limit) {
+        const l = b.limit;
+        s += `<h2>Limit orders <span class="tag">exploratory</span></h2>
+          <p class="note">Share of non-marketable limit orders fully filled, against other brokers on the same stock, size and order type. How aggressive the limit prices were is not observed.</p>
+          <table><tbody><tr><td>Filled</td><td class="num">${Math.round(l.observed * 100)}%</td></tr>
+          <tr><td>Versus other brokers<small>95% interval ${fmt(l.lo * 100, 1)} to ${fmt(l.hi * 100, 1)} pp${l.tested ? (l.significant ? "; significant" : "; not significant") : "; too few stocks to test"}</small></td><td class="num">${fmt(l.delta * 100, 1)} pp</td></tr></tbody></table>`;
+      }
+      return s;
+    }
+
+    function pairs(b) {
+      if (!b.better_than && !b.worse_than) return "";
+      const li = xs => xs.length ? xs.map(x => `<li><a href="broker.html?b=${encodeURIComponent(x.other)}">${esc(x.firm)}</a><span class="num">${fmt(x.delta)}</span></li>`).join("") : "<li>None significant</li>";
+      return `<h2>Head to head</h2><p class="note">Largest significant differences on orders both brokers handled (Holm p &lt; 0.05).</p>
+        <div class="two"><div><h3 class="mono">Better than</h3><ul class="pairs">${li(b.better_than || [])}</ul></div>
+        <div><h3 class="mono">Worse than</h3><ul class="pairs">${li(b.worse_than || [])}</ul></div></div>`;
+    }
+
+    Promise.all([fetch("data/brokers.json").then(r => r.json()), fetch("data/data.json").then(r => r.json())]).then(([B, D]) => {
+      const b = B.brokers[code], row = D.brokers.find(x => x.code === code);
+      document.getElementById("period").textContent = "Rule 605 · " + B.period;
+      if (!b) { document.getElementById("firm").textContent = "Broker not found"; return; }
+      document.title = `${b.firm} · Execution`;
+      document.getElementById("firm").textContent = b.firm;
+      document.getElementById("sub").textContent = `${b.segment} · ${B.period}`;
+      const stats = [];
+      if (row) {
+        stats.push([fmt(row.delta), row.tested ? (row.significant ? "adjusted gap, significant" : "adjusted gap, not significant") : "adjusted gap, too few stocks to test"]);
+        stats.push([`${row.rank} of ${D.n_brokers}`, `rank (95% range ${row.rank_lo}–${row.rank_hi}); raw rank ${row.raw_rank}`]);
+      }
+      if (b.usd_per_10k != null) stats.push([(b.usd_per_10k < 0 ? "−$" : "+$") + Math.abs(b.usd_per_10k).toFixed(2), "per $10,000 traded, from effective spreads in dollars (can differ in sign from the gap)"]);
+      if (b.usd_per_month != null) stats.push([(b.usd_per_month < 0 ? "−$" : "+$") + Math.abs(b.usd_per_month / 1e3).toLocaleString(undefined, { maximumFractionDigits: 0 }) + "k", "per month across its customers (negative = saved)"]);
+      document.getElementById("stats").innerHTML = stats.map(([v, l]) => `<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+      document.getElementById("body").innerHTML = history(b.history || [], b.pooled) + decomposition(b.decomposition) + secondary(b.secondary) + exploratory(b) + pairs(b);
+      const tip = document.getElementById("tip");
+      document.querySelectorAll(".chart g[data-i]").forEach(g => {
+        const r = b.history[+g.dataset.i];
+        g.addEventListener("mouseenter", () => { const c = g.querySelector("circle").getBoundingClientRect(), p = g.closest(".chart").getBoundingClientRect();
+          tip.textContent = `${mlabel(r.month)}: ${fmt(r.delta)} (${fmt(r.lo)} to ${fmt(r.hi)}), rank ${r.rank}`;
+          tip.style.left = (c.left + c.width / 2 - p.left) + "px"; tip.style.top = (c.top - p.top) + "px"; tip.style.display = "block"; });
+        g.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+      });
+    }).catch(() => { document.getElementById("firm").textContent = "Data could not be loaded"; });
+  </script>
+</body>
+</html>
