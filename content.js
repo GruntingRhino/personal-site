@@ -82,10 +82,17 @@ window.SITE = {
     },
     {
       focus: [2, 3],
-      title: "Quantitative Finance",
-      subtitle: "",
-      date: "Ongoing",
-      description: "", // left blank for now; a new project will go here
+      title: "Same Orders, Different Brokers",
+      subtitle: "Matched-order comparison of US retail brokers from amended SEC Rule 605 reports",
+      date: "Replication due Nov 30",
+      description:
+        "Since August 2026, US brokers publish monthly execution statistics, but raw numbers mix how well a broker executes with what its customers trade. I compared 50 brokers on identical orders (same stock, lot type, size, order type and month), with a pre-registered protocol, a stock-level bootstrap and proofs of when raw rankings can reverse. 41 of 46 testable brokers differ significantly from competitors on the same orders; 27 move five or more places between raw and adjusted rankings; customers of below-benchmark brokers pay about $44 million a month more for the same orders. Most of the gap comes from the price brokers get at the same wholesalers, not from where they route. A public tracker updates monthly. Pending: the pre-registered replication on October 2026 reports, due November 30.",
+      tags: ["Market microstructure", "Causal adjustment", "Pre-registration"],
+      links: [
+        { label: "Tracker", href: "execution-quality/" },
+        { label: "Paper (PDF)", href: "papers/rule605-execution-quality.pdf" },
+        { label: "Code", href: "https://github.com/GruntingRhino/retail-execution-quality" },
+      ],
     },
   ],
 
