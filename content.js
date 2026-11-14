@@ -21,7 +21,7 @@ window.SITE = {
   highlights: [
     { value: "3–5×", label: "Lower retrieval cost, HERA" },
     { value: "7×", label: "Smaller retrieval index, HERA" },
-    { value: "27%", label: "Reduction in gender accuracy disparity" },
+    { value: "100% → 4%", label: "Worst-case false-positive rate, fixed in seed inference" },
   ],
 
   sections: [
@@ -43,15 +43,15 @@ window.SITE = {
     },
     {
       focus: [0, 3],
-      title: "Bias Reduction with Proxy-Based Sampling",
-      subtitle: "Fairness when protected attributes are unobserved",
-      date: "Ongoing",
+      title: "Proxy-Guided Sampling and Skin-Tone Equity",
+      subtitle: "A re-registered audit of my own fairness claims",
+      date: "2026",
       description:
-        "Studies proxy-based sampling for reducing subgroup bias when protected attributes are not observed. On melanoma detection (ResNet-50 pretrained on ISIC and fine-tuned on PAD-UFES-20), balanced accuracy improved by 5.6 percentage points overall and by 4.7 points for the darker subgroup (grouped by image brightness, a proxy for skin tone). On the UCI Adult income dataset, the gender accuracy disparity fell by 27%. Both are measured against standard training (ERM); class-stratified sampling and proxy reweighting were also compared.",
-      tags: ["Fairness", "Medical imaging", "Statistical learning"],
+        "Re-tested whether rebalancing training data by an image-colour proxy for skin tone improves melanoma detection for darker skin: 7 methods, 10 seeds each, trained on HAM10000 and evaluated externally on Fitzpatrick17k. No method helped, and my earlier positive results did not survive controlled comparison, so I withdrew them. Along the way I showed that combining per-seed p-values with Fisher's method can produce false positives up to 100% of the time, and built a hierarchical bootstrap that stays at or below the nominal 5%.",
+      tags: ["Fairness", "Medical imaging", "Statistical inference"],
       links: [
-        { label: "Paper (PDF)", href: "papers/proxy-stratified-sampling.pdf" },
-        { label: "Code", href: "https://github.com/GruntingRhino/Medical-Image-Classifier" }, // the repo named in the paper
+        { label: "Paper (PDF)", href: "papers/proxy-sampling-audit.pdf" },
+        { label: "Code", href: "https://github.com/GruntingRhino/Medical-Image-Classifier" },
       ],
     },
   ],
@@ -93,13 +93,13 @@ window.SITE = {
     {
       focus: [0, 3],
       title:
-        "A Provable Framework for Measuring and Mitigating Subgroup Representation Bias with Proxy Attributes",
+        "Proxy-Guided Sampling Does Not Improve Skin-Tone Equity in Melanoma Classification: A Re-registered Audit, and Why Combining Training Seeds with Fisher's Method Fails",
       subtitle: "Abhay Sivaram · Independent research",
-      date: "In preparation",
+      date: "Preprint, November 2026",
       description:
-        "Introduces P-Stratified Sampling, a method that uses an observable proxy variable to rebalance training data when protected-attribute labels are unavailable, with a finite-sample bound on worst-case subgroup accuracy disparity. Evaluated on melanoma detection (ISIC, PAD-UFES-20), income prediction (UCI Adult), and text classification (20 Newsgroups), against standard training, class-stratified sampling, and proxy reweighting.",
-      tags: ["Algorithmic fairness", "Learning theory"],
-      links: [{ label: "Paper (PDF)", href: "papers/proxy-stratified-sampling.pdf" }],
+        "Shows that the quantile-bin sampling rule I originally proposed leaves the training data unchanged, and that no proxy-based method detectably improves external or darker-skin accuracy. Explains the failure (a dermoscopy-to-photo domain gap, only 38 dark-skin melanomas in the benchmark, and a proxy partly confounded with the diagnosis). Gives a calibrated method for comparing models trained with several random seeds. Replaces an earlier draft whose results I withdrew.",
+      tags: ["Algorithmic fairness", "Statistics", "Reproducibility"],
+      links: [{ label: "Paper (PDF)", href: "papers/proxy-sampling-audit.pdf" }],
     },
   ],
 
