@@ -63,7 +63,15 @@
     ul.dl { padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 0.25rem 1.5rem; font-size: 0.9375rem; }
     ul.dl small { color: var(--muted); }
     td.firm a { text-decoration-color: var(--line); }
-    @media (max-width: 40rem) { td.hide-sm, th.hide-sm { display: none; } td.bar { min-width: 7rem; } }
+    th .h { border-bottom: 1px dotted var(--faint); cursor: help; position: relative; display: inline-block; }
+    th .h:hover::after, th .h:focus::after { content: attr(data-tip); position: absolute; top: 100%; left: 0; z-index: 5; width: 15rem; margin-top: 0.4rem; padding: 0.5rem 0.6rem; border-radius: 0.25rem; background: var(--text); color: var(--bg); font: 400 0.75rem/1.45 var(--sans); white-space: normal; text-align: left; text-transform: none; letter-spacing: 0; }
+    th.num .h:hover::after, th.num .h:focus::after { left: auto; right: 0; }
+    th.bar .h { display: block; border: 0; }
+    th:first-child .h:hover::after, th:first-child .h:focus::after { left: 0; right: auto; }
+    p.key { font-size: 0.875rem; max-width: 62ch; margin: 0 0 0.75rem; }
+    @media (max-width: 40rem) { td.hide-sm, th.hide-sm { display: none; } td.bar { min-width: 7rem; }
+      th { white-space: normal; } th.num .h { max-width: 4.5rem; }
+      .axis { justify-content: center; } .axis span:first-child, .axis span:last-child { display: none; } }
   </style>
 </head>
 <body>
@@ -83,20 +91,21 @@
       </div>
     </div>
 
+    <p class="key">Each row compares one broker with all other brokers on identical orders. A dot left of the centre line means its customers paid less; right means they paid more. Hover or tap a column heading for details.</p>
     <div class="scroll">
       <table>
         <thead><tr>
-          <th class="num">Rank</th><th>Broker</th>
-          <th class="bar"><div class="axis" id="axis"></div></th>
-          <th class="num">Gap</th><th class="num hide-sm">Raw rank</th><th class="num hide-sm">$ per $10k</th>
+          <th class="num"><span class="h" tabindex="0" data-tip="1 = best after comparing on identical orders. The small range below is how sure we are: the broker could plausibly sit anywhere in it.">Rank</span></th><th>Broker</th>
+          <th class="bar"><span class="h" tabindex="0" data-tip="The dot is the broker's price compared with other brokers on the same orders; the line is the 95% uncertainty range. Left of the centre line: its customers paid less. Right: they paid more."><div class="axis" id="axis"></div></span></th>
+          <th class="num"><span class="h" tabindex="0" data-tip="How much less (−) or more (+) its customers paid, as a share of the quoted spread. −0.20 = paid a spread 20% of the quote smaller than other brokers did on identical orders.">Price vs. others</span></th><th class="num hide-sm"><span class="h" tabindex="0" data-tip="Where the broker would rank on its unadjusted report. A big difference from Rank means the raw numbers flatter or punish it because of what its customers trade.">Rank on raw report</span></th><th class="num hide-sm"><span class="h" tabindex="0" data-tip="Extra (+) or saved (−) dollars per $10,000 traded compared with other brokers on the same orders. Based on dollar spreads, so it can be small, or opposite in sign, for brokers trading very liquid stocks.">$ per $10k</span></th>
         </tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
     <div class="legend">
-      <span><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="#171717"/></svg> differs from other brokers (Holm p &lt; 0.05)</span>
-      <span><svg width="10" height="10"><circle cx="5" cy="5" r="3.5" fill="#fafaf8" stroke="#171717" stroke-width="1.2"/></svg> not significant</span>
-      <span><svg width="10" height="10"><circle cx="5" cy="5" r="3.5" fill="#fafaf8" stroke="#b5b5ae" stroke-width="1.2"/></svg> too few effective stocks to test</span>
+      <span><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="#171717"/></svg> clearly different from other brokers</span>
+      <span><svg width="10" height="10"><circle cx="5" cy="5" r="3.5" fill="#fafaf8" stroke="#171717" stroke-width="1.2"/></svg> can't tell yet (could be no different)</span>
+      <span><svg width="10" height="10"><circle cx="5" cy="5" r="3.5" fill="#fafaf8" stroke="#b5b5ae" stroke-width="1.2"/></svg> too little data to test</span>
     </div>
 
     <h2 class="sec" id="calculator">Best broker for your trade</h2>
@@ -110,7 +119,7 @@
         <option value="market">Market order</option><option value="marketable limit">Marketable limit order</option></select></div>
     </div>
     <div class="scroll"><table>
-      <thead><tr><th class="num">#</th><th>Broker</th><th class="bar"><div class="axis" id="c-axis"></div></th><th class="num">Gap</th></tr></thead>
+      <thead><tr><th class="num">#</th><th>Broker</th><th class="bar"><span class="h" tabindex="0" data-tip="The dot is the broker's price compared with other brokers on the same orders; the line is the 95% uncertainty range. Left of the centre line: its customers paid less. Right: they paid more."><div class="axis" id="c-axis"></div></span></th><th class="num"><span class="h" tabindex="0" data-tip="How much less (−) or more (+) its customers paid, as a share of the quoted spread. −0.20 = paid a spread 20% of the quote smaller than other brokers did on identical orders.">Price vs. others</span></th></tr></thead>
       <tbody id="c-rows"></tbody></table></div>
 
     <h2 class="sec" id="downloads">Download the data</h2>
@@ -127,7 +136,7 @@
 
     <section class="prose">
       <h2>How to read it</h2>
-      <p><strong>Gap</strong> is the adjusted difference in E/Q, the effective spread divided by the quoted spread (lower is better for the customer). A gap of −0.20 means the broker's customers paid an effective spread 20 percentage points of the quoted spread smaller than other brokers achieved on the same orders. Bars show 95% confidence intervals from a stock-level bootstrap. <strong>Rank</strong> intervals show how uncertain each position is. <strong>Raw rank</strong> is where the broker would sit on its unadjusted average, which mixes in what its customers trade. <strong>$ per $10k</strong> converts the adjusted percentage effective spread into dollars per $10,000 traded.</p>
+      <p><strong>Price vs. others</strong> is the adjusted difference in E/Q, the effective spread divided by the quoted spread (lower is better for the customer). A value of −0.20 means the broker's customers paid an effective spread 20 percentage points of the quoted spread smaller than other brokers achieved on the same orders. Bars show 95% confidence intervals from a stock-level bootstrap. <strong>Rank</strong> intervals show how uncertain each position is. <strong>Rank on raw report</strong> is where the broker would sit on its unadjusted average, which mixes in what its customers trade. <strong>$ per $10k</strong> converts the adjusted percentage effective spread into dollars per $10,000 traded.</p>
       <p>The method, its proofs and its limitations are in the paper. The analysis was pre-registered before any broker was compared. Within-cell differences in order timing or customer information are not removed; the paper shows they are unlikely to explain most gaps. Reports are self-reported by brokers, and some brokers' reports could not be collected.</p>
     </section>
   </main>
@@ -145,10 +154,10 @@
       rows.sort((a, b) => state.sort === "firm" ? a.firm.localeCompare(b.firm) : a[state.sort] - b[state.sort]);
       const lo = Math.min(...D.brokers.map(b => b.lo)), hi = Math.max(...D.brokers.map(b => b.hi));
       const pad = (hi - lo) * 0.04, x0 = lo - pad, x1 = hi + pad, X = v => (100 * (v - x0) / (x1 - x0)).toFixed(2) + "%";
-      document.getElementById("axis").innerHTML = `<span>${fmt(Math.ceil(x0 * 10) / 10, 1)}</span><span>0 · better ← → worse</span><span>${fmt(Math.floor(x1 * 10) / 10, 1)}</span>`;
+      document.getElementById("axis").innerHTML = `<span>${fmt(Math.ceil(x0 * 10) / 10, 1)}</span><span>← better · worse →</span><span>${fmt(Math.floor(x1 * 10) / 10, 1)}</span>`;
       document.getElementById("rows").innerHTML = rows.map(b => {
         const stroke = b.tested ? "#171717" : "#b5b5ae", fill = b.significant ? "#171717" : "#fafaf8";
-        const tip = `${b.firm}: gap ${fmt(b.delta)} (95% CI ${fmt(b.lo)} to ${fmt(b.hi)}); rank ${b.rank} (${b.rank_lo}–${b.rank_hi})` + (b.tested ? (b.significant ? "; differs significantly" : "; not significant") : "; not tested");
+        const tip = `${b.firm}: gap ${fmt(b.delta)} (95% CI ${fmt(b.lo)} to ${fmt(b.hi)}); rank ${b.rank} (${b.rank_lo}–${b.rank_hi})` + (b.tested ? (b.significant ? "; clearly different" : "; can't tell yet") : "; not tested");
         return `<tr class="${b.tested ? "" : "untested"}" title="${esc(tip)}">
           <td class="num">${b.rank}<br><small style="color:var(--muted)">${b.rank_lo}–${b.rank_hi}</small></td>
           <td class="firm"><a href="broker.html?b=${encodeURIComponent(b.code)}">${esc(b.firm)}</a><small>${esc(b.segment)}</small></td>
@@ -188,7 +197,7 @@
       if (!rows.length) { body.innerHTML = '<tr><td colspan="4">Too few matched orders of this kind to compare brokers.</td></tr>'; document.getElementById("c-axis").innerHTML = ""; return; }
       const lo = Math.min(...rows.map(b => b.lo)), hi = Math.max(...rows.map(b => b.hi)), pad = (hi - lo) * 0.04;
       const x0 = Math.min(lo - pad, -0.05), x1 = Math.max(hi + pad, 0.05), X = v => (100 * (v - x0) / (x1 - x0)).toFixed(2) + "%";
-      document.getElementById("c-axis").innerHTML = `<span>${fmt(x0, 1)}</span><span>0 · better ← → worse</span><span>${fmt(x1, 1)}</span>`;
+      document.getElementById("c-axis").innerHTML = `<span>${fmt(x0, 1)}</span><span>← better · worse →</span><span>${fmt(x1, 1)}</span>`;
       body.innerHTML = rows.map((b, i) => `<tr class="${b.tested ? "" : "untested"}">
         <td class="num">${i + 1}</td><td class="firm"><a href="broker.html?b=${encodeURIComponent(b.code)}">${esc(b.firm)}</a><small>${b.n_cells.toLocaleString()} matched order groups</small></td>
         <td class="bar">${ciSvg(b, X)}</td><td class="num">${fmt(b.delta)}</td></tr>`).join("");
@@ -201,8 +210,8 @@
       document.getElementById("period").textContent = "Rule 605 · " + d.period;
       document.getElementById("cells").textContent = `${d.period}, ${d.n_cells.toLocaleString()} matched cells in ${d.n_symbols.toLocaleString()} stocks`;
       document.getElementById("stats").innerHTML = [
-        [`${d.n_sig} of ${d.n_tested}`, "tested brokers differ from competitors on the same orders"],
-        [`${d.raw_vs_adjusted_spearman}`, "rank correlation between raw and adjusted rankings"],
+        [`${d.n_sig} of ${d.n_tested}`, "testable brokers clearly differ from other brokers on the same orders"],
+        [`${d.raw_vs_adjusted_spearman}`, "agreement between raw and adjusted rankings (1 = identical)"],
         [`$${d.usd_month_worse}M`, "extra paid per month by customers of below-benchmark brokers"],
         [`${d.n_brokers}`, "retail brokers compared"]].map(([v, l]) => `<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
       controls(); render();
